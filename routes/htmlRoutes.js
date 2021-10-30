@@ -1,4 +1,5 @@
-var path = require("path");
+const path = require("path");
+const router = require('express').Router();
 
 module.exports = function(app) {
  
@@ -10,3 +11,5 @@ module.exports = function(app) {
     res.sendFile(path.join(__dirname, "../public/stats.html"));
   });
 };
+
+module.exports = router;

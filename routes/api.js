@@ -1,33 +1,72 @@
 const router = require("express").Router();
-const Workout = require(`models/workoutModel.js`);
+const { Workout } = require(`../models/workouts`);
 
 router.post(`/api/workouts`, ({ body }, res) => {
-  Workout.create(body)
-    .then(dbWorkout => res.json(dbWorkout))
-    .catch(err => res.status(400).json(err));
+  Workout.create({})
+    .then((workoutData) => {
+      res.json(workoutData);
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
 });
 
 router.put(`/api/workouts/:id`, ({ body, params }, res) => {
-  Workout.findOneAndUpdate({ _id: params.id }, { $push: { exercises: body } })
-    .then(dbWorkout => res.json(dbWorkout))
-    .catch(err => {
-      console.log(err);
+  Workout.findByIdAndUpdate(
+    req.params.id,
+    {
+      $push: {
+        exercises: req.body,
+      },
+    },
+    {
+      new: true,
+    }
+  )
+    .then((workoutData) => {
+      res.json(workoutData);
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+});
+
+
+router.get('/api/workouts/range', (req, res) => {
+  Workout.aggregate([
+    {
+      $addFields: {
+        totalDuration: {
+          $sum: '$exercises.duration',
+        },
+      },
+    },
+  ])
+    .sort({ _id: -1 })
+    .limit(7)
+    .then((workoutData) => {
+      res.json(workoutData);
+    })
+    .catch((err) => {
       res.status(400).json(err);
     });
 });
 
 router.get(`/api/workouts`, (req, res) => {
-  Workout.find({})
-    .then(dbWorkout => {
-      console.log(dbWorkout);
-      return res.json(dbWorkout);
-    })
-    .catch(err => res.status(400).json(err));
-});
-router.get(`/api/workouts/range`, (req, res) => {
-  Workout.find({})
-    .then(dbWorkout => res.json(dbWorkout))
-    .catch(err => res.status(404).json(err));
+  Workout.aggregate([
+    {
+      $addFields: {
+        totalDuration: {
+          $sum: '$exercises.duration',
+        },
+      },
+    },
+  ]).then((workoutData) => {
+    res.json(workoutData);
+  });
 });
 
 module.exports = router;
